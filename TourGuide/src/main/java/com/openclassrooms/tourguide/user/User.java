@@ -1,9 +1,7 @@
 package com.openclassrooms.tourguide.user;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import gpsUtil.location.VisitedLocation;
 import tripPricer.Provider;
@@ -68,9 +66,11 @@ public class User {
 	public void clearVisitedLocations() {
 		visitedLocations.clear();
 	}
-	
+
 	public void addUserReward(UserReward userReward) {
-		if(userRewards.stream().filter(r -> !r.attraction.attractionName.equals(userReward.attraction)).count() == 0) {
+		if (userRewards.stream()
+				.filter(ur -> ur.attraction.attractionName.equals(userReward.attraction.attractionName))
+				.count()==0) {
 			userRewards.add(userReward);
 		}
 	}
