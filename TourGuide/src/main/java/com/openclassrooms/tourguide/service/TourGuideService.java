@@ -6,24 +6,20 @@ import com.openclassrooms.tourguide.record.NearByAttractionList;
 import com.openclassrooms.tourguide.tracker.Tracker;
 import com.openclassrooms.tourguide.user.User;
 import com.openclassrooms.tourguide.user.UserReward;
+import gpsUtil.GpsUtil;
+import gpsUtil.location.Location;
+import gpsUtil.location.VisitedLocation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import tripPricer.Provider;
+import tripPricer.TripPricer;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
-import gpsUtil.GpsUtil;
-import gpsUtil.location.Attraction;
-import gpsUtil.location.Location;
-import gpsUtil.location.VisitedLocation;
-
-import tripPricer.Provider;
-import tripPricer.TripPricer;
 
 @Service
 public class TourGuideService {
@@ -91,24 +87,20 @@ public class TourGuideService {
 	}
 
 	public NearByAttractionList getNearByAttractions(VisitedLocation visitedLocation) {
-		final Location userLocation = visitedLocation.location;
-		Map<Double, Attraction> attractionsSortedByDistance = new TreeMap<>();
-		for (Attraction attraction : gpsUtil.getAttractions()) {
-			attractionsSortedByDistance.put(rewardsService.getDistance(attraction, userLocation), attraction);
-		}
-		List<Map.Entry<Double, Attraction>> nearByAttractionsSorted = attractionsSortedByDistance.entrySet().stream()
-				.limit(5).toList();
-		NearByAttraction[] nearByAttractions = new NearByAttraction[5];
-		for (int i = 0; i < 5; i++) {
-			nearByAttractions[i] = new NearByAttraction(
-					nearByAttractionsSorted.get(i).getValue().attractionName,
-					nearByAttractionsSorted.get(i).getValue().latitude,
-					nearByAttractionsSorted.get(i).getValue().longitude,
-					nearByAttractionsSorted.get(i).getKey(),
-					rewardsService.getRewardsCentral().getAttractionRewardPoints(
-							nearByAttractionsSorted.get(i).getValue().attractionId, visitedLocation.userId)
-			);
-		}
+
+		NearByAttraction[] nearByAttractions = gpsUtil.getAttractions().stream()
+				.map(a -> new NearByAttraction(
+						a.attractionName,
+						a.latitude,
+						a.longitude,
+						rewardsService.getDistance(a, visitedLocation.location),
+						rewardsService.getRewardsCentral().getAttractionRewardPoints(
+								a.attractionId, visitedLocation.userId)
+				))
+				.sorted(Comparator.comparingDouble(NearByAttraction::distance))
+				.limit(5)
+				.toArray(NearByAttraction[]::new);
+
 		return new NearByAttractionList(visitedLocation.location, nearByAttractions);
 	}
 
