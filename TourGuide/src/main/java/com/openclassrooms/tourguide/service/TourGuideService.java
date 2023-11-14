@@ -1,20 +1,15 @@
 package com.openclassrooms.tourguide.service;
 
 import com.openclassrooms.tourguide.helper.InternalTestHelper;
+import com.openclassrooms.tourguide.record.NearByAttraction;
+import com.openclassrooms.tourguide.record.NearByAttractionList;
 import com.openclassrooms.tourguide.tracker.Tracker;
 import com.openclassrooms.tourguide.user.User;
 import com.openclassrooms.tourguide.user.UserReward;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -95,15 +90,26 @@ public class TourGuideService {
 		return visitedLocation;
 	}
 
-	public List<Attraction> getNearByAttractions(VisitedLocation visitedLocation) {
-		List<Attraction> nearbyAttractions = new ArrayList<>();
+	public NearByAttractionList getNearByAttractions(VisitedLocation visitedLocation) {
+		final Location userLocation = visitedLocation.location;
+		Map<Double, Attraction> attractionsSortedByDistance = new TreeMap<>();
 		for (Attraction attraction : gpsUtil.getAttractions()) {
-			if (rewardsService.isWithinAttractionProximity(attraction, visitedLocation.location)) {
-				nearbyAttractions.add(attraction);
-			}
+			attractionsSortedByDistance.put(rewardsService.getDistance(attraction, userLocation), attraction);
 		}
-
-		return nearbyAttractions;
+		List<Map.Entry<Double, Attraction>> nearByAttractionsSorted = attractionsSortedByDistance.entrySet().stream()
+				.limit(5).toList();
+		NearByAttraction[] nearByAttractions = new NearByAttraction[5];
+		for (int i = 0; i < 5; i++) {
+			nearByAttractions[i] = new NearByAttraction(
+					nearByAttractionsSorted.get(i).getValue().attractionName,
+					nearByAttractionsSorted.get(i).getValue().latitude,
+					nearByAttractionsSorted.get(i).getValue().longitude,
+					nearByAttractionsSorted.get(i).getKey(),
+					rewardsService.getRewardsCentral().getAttractionRewardPoints(
+							nearByAttractionsSorted.get(i).getValue().attractionId, visitedLocation.userId)
+			);
+		}
+		return new NearByAttractionList(visitedLocation.location, nearByAttractions);
 	}
 
 	private void addShutDownHook() {
