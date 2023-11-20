@@ -18,6 +18,7 @@ import tripPricer.TripPricer;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -50,10 +51,9 @@ public class TourGuideService {
 		return user.getUserRewards();
 	}
 
-	public VisitedLocation getUserLocation(User user) {
-		VisitedLocation visitedLocation = (user.getVisitedLocations().size() > 0) ? user.getLastVisitedLocation()
+	public CompletableFuture<VisitedLocation> getUserLocation(User user) {
+		return (user.getVisitedLocations().size() > 0) ? user.getLastVisitedLocation()
 				: trackUserLocation(user);
-		return visitedLocation;
 	}
 
 	public User getUser(String userName) {
@@ -79,29 +79,35 @@ public class TourGuideService {
 		return providers;
 	}
 
-	public VisitedLocation trackUserLocation(User user) {
-		VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
-		user.addToVisitedLocations(visitedLocation);
-		rewardsService.calculateRewards(user);
-		return visitedLocation;
+	public CompletableFuture<VisitedLocation> trackUserLocation(User user) {
+		CompletableFuture<VisitedLocation> completableFuture
+				= CompletableFuture.supplyAsync(() -> gpsUtil.getUserLocation(user.getUserId()));
+		return completableFuture.thenApply((visitedLocation) -> {
+			user.addToVisitedLocations(visitedLocation);
+			rewardsService.calculateRewards(user);
+			return visitedLocation;
+		});
 	}
 
-	public NearByAttractionList getNearByAttractions(VisitedLocation visitedLocation) {
-
-		NearByAttraction[] nearByAttractions = gpsUtil.getAttractions().stream()
-				.map(a -> new NearByAttraction(
-						a.attractionName,
-						a.latitude,
-						a.longitude,
-						rewardsService.getDistance(a, visitedLocation.location),
-						rewardsService.getRewardsCentral().getAttractionRewardPoints(
-								a.attractionId, visitedLocation.userId)
-				))
-				.sorted(Comparator.comparingDouble(NearByAttraction::distance))
-				.limit(5)
-				.toArray(NearByAttraction[]::new);
-
-		return new NearByAttractionList(visitedLocation.location, nearByAttractions);
+	public CompletableFuture<NearByAttractionList> getNearByAttractions(CompletableFuture<VisitedLocation> completableFuture) {
+		return completableFuture.thenApply((visitedLocation) -> {
+			NearByAttraction[] nearByAttractions = gpsUtil.getAttractions().stream()
+					.map(attraction -> new NearByAttraction(
+							attraction.attractionName,
+							attraction.attractionId,
+							attraction.latitude,
+							attraction.longitude,
+							rewardsService.getDistance(attraction, visitedLocation.location),
+							0
+					))
+					.sorted(Comparator.comparingDouble(NearByAttraction::distance))
+					.limit(5)
+					.map(nearByAttraction -> nearByAttraction.withReward(
+							rewardsService.getRewardsCentral().getAttractionRewardPoints(nearByAttraction.attractionId(), visitedLocation.userId)
+					))
+					.toArray(NearByAttraction[]::new);
+			return new NearByAttractionList(visitedLocation.location, nearByAttractions);
+		});
 	}
 
 	private void addShutDownHook() {

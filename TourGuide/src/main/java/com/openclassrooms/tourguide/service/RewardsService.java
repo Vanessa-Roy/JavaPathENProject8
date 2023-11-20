@@ -1,16 +1,16 @@
 package com.openclassrooms.tourguide.service;
 
-import java.util.*;
-
-import org.springframework.stereotype.Service;
-
+import com.openclassrooms.tourguide.user.User;
+import com.openclassrooms.tourguide.user.UserReward;
 import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
+import org.springframework.stereotype.Service;
 import rewardCentral.RewardCentral;
-import com.openclassrooms.tourguide.user.User;
-import com.openclassrooms.tourguide.user.UserReward;
+
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
 public class RewardsService {
@@ -36,7 +36,7 @@ public class RewardsService {
 	}
 
 	public void calculateRewards(User user) {
-		List<VisitedLocation> userLocations = new ArrayList<>(user.getVisitedLocations());
+		List<VisitedLocation> userLocations = new CopyOnWriteArrayList<>(user.getVisitedLocations());
 		List<Attraction> attractions = gpsUtil.getAttractions();
 
 		for(VisitedLocation visitedLocation : userLocations) {

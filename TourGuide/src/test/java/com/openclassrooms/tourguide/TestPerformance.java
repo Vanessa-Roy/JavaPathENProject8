@@ -1,24 +1,24 @@
 package com.openclassrooms.tourguide;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.lang3.time.StopWatch;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
-import gpsUtil.GpsUtil;
-import gpsUtil.location.Attraction;
-import gpsUtil.location.VisitedLocation;
-import rewardCentral.RewardCentral;
 import com.openclassrooms.tourguide.helper.InternalTestHelper;
 import com.openclassrooms.tourguide.service.RewardsService;
 import com.openclassrooms.tourguide.service.TourGuideService;
 import com.openclassrooms.tourguide.user.User;
+import gpsUtil.GpsUtil;
+import gpsUtil.location.Attraction;
+import gpsUtil.location.VisitedLocation;
+import org.apache.commons.lang3.time.StopWatch;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import rewardCentral.RewardCentral;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestPerformance {
 
@@ -58,16 +58,27 @@ public class TestPerformance {
 		List<User> allUsers = new ArrayList<>();
 		allUsers = tourGuideService.getAllUsers();
 
+		System.out.println("before " + allUsers.get(0).getLastVisitedLocation().join().location.latitude + " "+allUsers.get(0).getVisitedLocations().size());
+
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
+
+		List<CompletableFuture<VisitedLocation>> completableFutureList = new ArrayList<>();
+
 		for (User user : allUsers) {
-			tourGuideService.trackUserLocation(user);
+			completableFutureList.add(tourGuideService.trackUserLocation(user));
 		}
+
+		completableFutureList.forEach(CompletableFuture::join);
+
 		stopWatch.stop();
+
+		System.out.println("after " + allUsers.get(0).getLastVisitedLocation().join().location.latitude+ " "+ allUsers.get(0).getVisitedLocations().size());
+
 		tourGuideService.tracker.stopTracking();
 
 		System.out.println("highVolumeTrackLocation: Time Elapsed: "
-				+ TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
+				+ TimeUnit.MILLISECONDS.toMillis(stopWatch.getTime()) + " milliseconds." + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
 		assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	}
 

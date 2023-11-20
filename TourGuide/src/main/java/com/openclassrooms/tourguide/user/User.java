@@ -1,10 +1,13 @@
 package com.openclassrooms.tourguide.user;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 import gpsUtil.location.VisitedLocation;
 import tripPricer.Provider;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class User {
 	private final UUID userId;
@@ -87,8 +90,8 @@ public class User {
 		this.userPreferences = userPreferences;
 	}
 
-	public VisitedLocation getLastVisitedLocation() {
-		return visitedLocations.get(visitedLocations.size() - 1);
+	public CompletableFuture<VisitedLocation> getLastVisitedLocation() {
+		return CompletableFuture.supplyAsync(() -> visitedLocations.get(visitedLocations.size() - 1));
 	}
 	
 	public void setTripDeals(List<Provider> tripDeals) {

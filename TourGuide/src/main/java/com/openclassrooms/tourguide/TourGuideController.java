@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import tripPricer.Provider;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 public class TourGuideController {
@@ -25,7 +26,7 @@ public class TourGuideController {
     }
     
     @RequestMapping("/getLocation") 
-    public VisitedLocation getLocation(@RequestParam String userName) {
+    public CompletableFuture<VisitedLocation> getLocation(@RequestParam String userName) {
     	return tourGuideService.getUserLocation(getUser(userName));
     }
     
@@ -38,9 +39,9 @@ public class TourGuideController {
         // The distance in miles between the user's location and each of the attractions.
         // The reward points for visiting each Attraction.
         //    Note: Attraction reward points can be gathered from RewardsCentral
-    @RequestMapping("/getNearbyAttractions") 
-    public NearByAttractionList getNearbyAttractions(@RequestParam String userName) {
-    	VisitedLocation visitedLocation = tourGuideService.getUserLocation(getUser(userName));
+    @RequestMapping("/getNearbyAttractions")
+    public CompletableFuture<NearByAttractionList> getNearbyAttractions(@RequestParam String userName) {
+    	CompletableFuture<VisitedLocation> visitedLocation = tourGuideService.getUserLocation(getUser(userName));
     	return tourGuideService.getNearByAttractions(visitedLocation);
     }
     
