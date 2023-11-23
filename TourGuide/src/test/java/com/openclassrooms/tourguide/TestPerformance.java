@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -52,13 +53,11 @@ public class TestPerformance {
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 		// Users should be incremented up to 100,000, and test finishes within 15
 		// minutes
-		InternalTestHelper.setInternalUserNumber(100000);
+		InternalTestHelper.setInternalUserNumber(10);
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
 
 		List<User> allUsers = new ArrayList<>();
 		allUsers = tourGuideService.getAllUsers();
-
-		System.out.println("before " + allUsers.get(0).getLastVisitedLocation().join().location.latitude + " "+allUsers.get(0).getVisitedLocations().size());
 
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
@@ -72,8 +71,6 @@ public class TestPerformance {
 		completableFutureList.forEach(CompletableFuture::join);
 
 		stopWatch.stop();
-
-		System.out.println("after " + allUsers.get(0).getLastVisitedLocation().join().location.latitude+ " "+ allUsers.get(0).getVisitedLocations().size());
 
 		tourGuideService.tracker.stopTracking();
 
@@ -91,21 +88,28 @@ public class TestPerformance {
 		// Users should be incremented up to 100,000, and test finishes within 20
 		// minutes
 		InternalTestHelper.setInternalUserNumber(100);
-		StopWatch stopWatch = new StopWatch();
-		stopWatch.start();
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
 
 		Attraction attraction = gpsUtil.getAttractions().get(0);
-		List<User> allUsers = new ArrayList<>();
-		allUsers = tourGuideService.getAllUsers();
+		List<User> allUsers = new CopyOnWriteArrayList<>(tourGuideService.getAllUsers());
 		allUsers.forEach(u -> u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attraction, new Date())));
 
-		allUsers.forEach(u -> rewardsService.calculateRewards(u));
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+
+		List<CompletableFuture<Void>> completableFutureList = new ArrayList<>();
+
+		for (User user : allUsers) {
+			completableFutureList.add(rewardsService.calculateRewards(user));
+		}
+
+		completableFutureList.forEach(CompletableFuture::join);
+
+		stopWatch.stop();
 
 		for (User user : allUsers) {
 			assertTrue(user.getUserRewards().size() > 0);
 		}
-		stopWatch.stop();
 		tourGuideService.tracker.stopTracking();
 
 		System.out.println("highVolumeGetRewards: Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime())

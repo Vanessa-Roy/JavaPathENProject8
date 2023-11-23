@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service;
 import rewardCentral.RewardCentral;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
 
 @Service
 public class RewardsService {
@@ -35,27 +37,27 @@ public class RewardsService {
 		proximityBuffer = defaultProximityBuffer;
 	}
 
-	public void calculateRewards(User user) {
-		List<VisitedLocation> userLocations = new CopyOnWriteArrayList<>(user.getVisitedLocations());
-		List<Attraction> attractions = gpsUtil.getAttractions();
-
-		for(VisitedLocation visitedLocation : userLocations) {
-			for(Attraction attraction : attractions) {
-				if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
-					if(nearAttraction(visitedLocation, attraction)) {
-						user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
-					}
-				}
+	public CompletableFuture<Void> calculateRewards(User user) {
+		return CompletableFuture.runAsync(() -> {
+			List<Attraction> attractions = gpsUtil.getAttractions();
+			List<VisitedLocation> userLocations = new CopyOnWriteArrayList<>(user.getVisitedLocations());
+			for(VisitedLocation visitedLocation : userLocations) {
+				List<Attraction> nearAttractionFirstTime = attractions.stream()
+						.filter(a -> (nearAttraction(visitedLocation, a)) && (user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(a.attractionName))).count() == 0)
+						.toList();
+				nearAttractionFirstTime.forEach(a -> user.addUserReward(new UserReward(visitedLocation, a, getRewardPoints(a, user).join())));
 			}
-		}
+		}, Executors.newSingleThreadExecutor());
 	}
-	
+
 	private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
 		return getDistance(attraction, visitedLocation.location) > proximityBuffer ? false : true;
 	}
 	
-	private int getRewardPoints(Attraction attraction, User user) {
-		return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
+	private CompletableFuture<Integer> getRewardPoints(Attraction attraction, User user) {
+		return CompletableFuture.supplyAsync(
+				() -> rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId()), Executors.newSingleThreadExecutor()
+		);
 	}
 	
 	public double getDistance(Location loc1, Location loc2) {
