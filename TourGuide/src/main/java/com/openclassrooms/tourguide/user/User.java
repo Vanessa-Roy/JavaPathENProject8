@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class User {
 	private final UUID userId;
@@ -90,8 +89,8 @@ public class User {
 		this.userPreferences = userPreferences;
 	}
 
-	public CompletableFuture<VisitedLocation> getLastVisitedLocation() {
-		return CompletableFuture.supplyAsync(() -> visitedLocations.get(visitedLocations.size() - 1));
+	public VisitedLocation getLastVisitedLocation() {
+		return visitedLocations.get(visitedLocations.size() - 1);
 	}
 	
 	public void setTripDeals(List<Provider> tripDeals) {

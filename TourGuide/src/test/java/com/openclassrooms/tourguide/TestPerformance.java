@@ -14,7 +14,6 @@ import rewardCentral.RewardCentral;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -54,19 +53,12 @@ public class TestPerformance {
 		InternalTestHelper.setInternalUserNumber(100000);
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
 
-		List<User> allUsers = new ArrayList<>();
-		allUsers = tourGuideService.getAllUsers();
+		List<User> allUsers = new ArrayList<>(tourGuideService.getAllUsers());
 
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 
-		List<CompletableFuture<VisitedLocation>> completableFutureList = new ArrayList<>();
-
-		for (User user : allUsers) {
-			completableFutureList.add(tourGuideService.trackUserLocation(user));
-		}
-
-		completableFutureList.forEach(CompletableFuture::join);
+		allUsers.parallelStream().forEach(tourGuideService::trackUserLocation);
 
 		stopWatch.stop();
 
@@ -94,13 +86,15 @@ public class TestPerformance {
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 
-		List<CompletableFuture<Void>> completableFutureList = new ArrayList<>();
+		allUsers.parallelStream().forEach(rewardsService::calculateRewards);
+
+/*		List<CompletableFuture<Void>> completableFutureList = new ArrayList<>();
 
 		for (User user : allUsers) {
 			completableFutureList.add(rewardsService.calculateRewards(user));
 		}
 
-		completableFutureList.forEach(CompletableFuture::join);
+		completableFutureList.forEach(CompletableFuture::join);*/
 
 		stopWatch.stop();
 

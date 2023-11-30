@@ -18,7 +18,6 @@ import tripPricer.TripPricer;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -27,6 +26,8 @@ public class TourGuideService {
 	private Logger logger = LoggerFactory.getLogger(TourGuideService.class);
 	private final GpsUtil gpsUtil;
 	private final RewardsService rewardsService;
+	private final RewardCentralServiceAsync rewardCentralServiceAsync = new RewardCentralServiceAsync();
+	private final GpsUtilServiceAsync gpsUtilServiceAsync = new GpsUtilServiceAsync();
 	private final TripPricer tripPricer = new TripPricer();
 	public final Tracker tracker;
 	boolean testMode = true;
@@ -51,7 +52,7 @@ public class TourGuideService {
 		return user.getUserRewards();
 	}
 
-	public CompletableFuture<VisitedLocation> getUserLocation(User user) {
+	public VisitedLocation getUserLocation(User user) {
 		return (user.getVisitedLocations().size() > 0) ? user.getLastVisitedLocation()
 				: trackUserLocation(user);
 	}
@@ -79,19 +80,15 @@ public class TourGuideService {
 		return providers;
 	}
 
-	public CompletableFuture<VisitedLocation> trackUserLocation(User user) {
-		CompletableFuture<VisitedLocation> completableFuture
-				= CompletableFuture.supplyAsync(() -> gpsUtil.getUserLocation(user.getUserId()));
-		return completableFuture.thenApply((visitedLocation) -> {
-			user.addToVisitedLocations(visitedLocation);
-			rewardsService.calculateRewards(user).join();
-			return visitedLocation;
-		});
+	public VisitedLocation trackUserLocation(User user) {
+		VisitedLocation visitedLocation = gpsUtilServiceAsync.getUserLocationAsync(user.getUserId()).join();
+		user.addToVisitedLocations(visitedLocation);
+		rewardsService.calculateRewards(user);
+		return visitedLocation;
 	}
 
-	public CompletableFuture<NearByAttractionList> getNearByAttractions(CompletableFuture<VisitedLocation> completableFuture) {
-		return completableFuture.thenApply((visitedLocation) -> {
-			NearByAttraction[] nearByAttractions = gpsUtil.getAttractions().stream()
+	public NearByAttractionList getNearByAttractions(VisitedLocation visitedLocation) {
+			NearByAttraction[] nearByAttractions = gpsUtilServiceAsync.getAttractionsAsync().join().stream()
 					.map(attraction -> new NearByAttraction(
 							attraction.attractionName,
 							attraction.attractionId,
@@ -102,12 +99,9 @@ public class TourGuideService {
 					))
 					.sorted(Comparator.comparingDouble(NearByAttraction::distance))
 					.limit(5)
-					.map(nearByAttraction -> nearByAttraction.withReward(
-							rewardsService.getRewardsCentral().getAttractionRewardPoints(nearByAttraction.attractionId(), visitedLocation.userId)
-					))
+					.map(nearByAttraction -> nearByAttraction.withReward(rewardCentralServiceAsync.getAttractionRewardPointsAsync(nearByAttraction.attractionId(), visitedLocation.userId).join()))
 					.toArray(NearByAttraction[]::new);
 			return new NearByAttractionList(visitedLocation.location, nearByAttractions);
-		});
 	}
 
 	private void addShutDownHook() {
