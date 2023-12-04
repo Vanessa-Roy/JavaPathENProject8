@@ -52,7 +52,7 @@
 			<artifactId>gpsUtil</artifactId>
 			<version>1.0</version>
 			<scope>system</scope>
-			<systemPath>${basedir}\libs\gpsUtil.jar</systemPath>
+			<systemPath>${project.basedir}/libs/gpsUtil.jar</systemPath>
 		</dependency>
 
 		<dependency>
