@@ -12,11 +12,11 @@ import java.util.concurrent.Executors;
 public class GpsUtilServiceAsync extends GpsUtil {
     public CompletableFuture<VisitedLocation> getUserLocationAsync(UUID userId) {
         return CompletableFuture.supplyAsync(
-                () -> this.getUserLocation(userId), Executors.newWorkStealingPool()
+                () -> this.getUserLocation(userId), Executors.newCachedThreadPool()
         );
     }
 
     public CompletableFuture<List<Attraction>> getAttractionsAsync() {
-        return CompletableFuture.supplyAsync(this::getAttractions, Executors.newWorkStealingPool());
+        return CompletableFuture.supplyAsync(this::getAttractions, Executors.newCachedThreadPool());
     }
 }
