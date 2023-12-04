@@ -53,6 +53,7 @@ public class TestPerformance {
 		// minutes
 		InternalTestHelper.setInternalUserNumber(100000);
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
+		tourGuideService.tracker.stopTracking();
 
 		List<User> allUsers = new ArrayList<>(tourGuideService.getAllUsers());
 
@@ -62,8 +63,6 @@ public class TestPerformance {
 		allUsers.parallelStream().forEach(tourGuideService::trackUserLocation);
 
 		stopWatch.stop();
-
-		tourGuideService.tracker.stopTracking();
 
 		System.out.println("highVolumeTrackLocation: Time Elapsed: "
 				+ TimeUnit.MILLISECONDS.toMillis(stopWatch.getTime()) + " milliseconds." + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
@@ -89,14 +88,6 @@ public class TestPerformance {
 		stopWatch.start();
 
 		allUsers.parallelStream().forEach(rewardsService::calculateRewards);
-
-/*		List<CompletableFuture<Void>> completableFutureList = new ArrayList<>();
-
-		for (User user : allUsers) {
-			completableFutureList.add(rewardsService.calculateRewards(user));
-		}
-
-		completableFutureList.forEach(CompletableFuture::join);*/
 
 		stopWatch.stop();
 
