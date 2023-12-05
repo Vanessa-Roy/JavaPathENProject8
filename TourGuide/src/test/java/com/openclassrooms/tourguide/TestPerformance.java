@@ -79,6 +79,7 @@ public class TestPerformance {
 		// minutes
 		InternalTestHelper.setInternalUserNumber(100000);
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
+		tourGuideService.tracker.stopTracking();
 
 		Attraction attraction = gpsUtil.getAttractions().get(0);
 		List<User> allUsers = new CopyOnWriteArrayList<>(tourGuideService.getAllUsers());
@@ -94,7 +95,6 @@ public class TestPerformance {
 		for (User user : allUsers) {
 			assertTrue(user.getUserRewards().size() > 0);
 		}
-		tourGuideService.tracker.stopTracking();
 
 		System.out.println("highVolumeGetRewards: Time Elapsed: " + TimeUnit.MILLISECONDS.toMillis(stopWatch.getTime()) + " milliseconds." + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
 		assertTrue(TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
