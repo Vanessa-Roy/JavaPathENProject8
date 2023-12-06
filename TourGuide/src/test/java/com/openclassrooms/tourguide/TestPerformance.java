@@ -45,6 +45,7 @@ public class TestPerformance {
 	 * TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	 */
 
+	@Disabled // has to be launched manually to prevent the pipeline blocking
 	@Test
 	public void highVolumeTrackLocation() {
 		GpsUtil gpsUtil = new GpsUtil();
@@ -53,7 +54,7 @@ public class TestPerformance {
 		// minutes
 		InternalTestHelper.setInternalUserNumber(100000);
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
-		tourGuideService.tracker.stopTracking();
+		tourGuideService.tracker.stopTracking();//disable the tracker, no need it into this test
 
 		List<User> allUsers = new ArrayList<>(tourGuideService.getAllUsers());
 
@@ -69,7 +70,7 @@ public class TestPerformance {
 		assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	}
 
-	@Disabled
+	@Disabled // // has to be launched manually to prevent the pipeline blocking
 	@Test
 	public void highVolumeGetRewards() {
 		GpsUtil gpsUtil = new GpsUtil();
@@ -79,7 +80,7 @@ public class TestPerformance {
 		// minutes
 		InternalTestHelper.setInternalUserNumber(100000);
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
-		tourGuideService.tracker.stopTracking();
+		tourGuideService.tracker.stopTracking();//disable the tracker, no need it into this test
 
 		Attraction attraction = gpsUtil.getAttractions().get(0);
 		List<User> allUsers = new CopyOnWriteArrayList<>(tourGuideService.getAllUsers());
