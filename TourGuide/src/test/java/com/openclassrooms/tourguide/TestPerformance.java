@@ -15,7 +15,6 @@ import rewardCentral.RewardCentral;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -52,9 +51,6 @@ public class TestPerformance {
 	@Parameters("userNumber")
 	@Test()
 	public void highVolumeTrackLocation(String userNumber) {
-		if (userNumber == null) {
-			userNumber = "10";
-		}
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 		// Users should be incremented up to 100,000, and test finishes within 15
@@ -82,9 +78,6 @@ public class TestPerformance {
 	@Parameters("userNumber")
 	@Test()
 	public void highVolumeGetRewards(String userNumber) {
-		if (Objects.equals(userNumber, "userNumber")) {
-			userNumber = "10";
-		}
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 

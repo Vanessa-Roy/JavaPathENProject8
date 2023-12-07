@@ -90,7 +90,7 @@
 				<version>2.12.4</version>
 				<configuration>
 					<systemPropertyVariables>
-						<userNumber>${userNumber}</userNumber>
+						<userNumber>userNumber</userNumber>
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>
