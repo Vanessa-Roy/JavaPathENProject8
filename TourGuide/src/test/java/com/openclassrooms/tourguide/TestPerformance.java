@@ -51,6 +51,9 @@ public class TestPerformance {
 	@Parameters("userNumber")
 	@Test()
 	public void highVolumeTrackLocation(String userNumber) {
+		if (userNumber == null) {
+			userNumber = "10";
+		}
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 		// Users should be incremented up to 100,000, and test finishes within 15
@@ -78,6 +81,9 @@ public class TestPerformance {
 	@Parameters("userNumber")
 	@Test()
 	public void highVolumeGetRewards(String userNumber) {
+		if (userNumber == null) {
+			userNumber = "10";
+		}
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 
