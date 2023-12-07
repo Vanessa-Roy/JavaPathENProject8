@@ -8,8 +8,8 @@ import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
 import org.apache.commons.lang3.time.StopWatch;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
 import rewardCentral.RewardCentral;
 
 import java.util.ArrayList;
@@ -45,16 +45,18 @@ public class TestPerformance {
 	 * TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	 */
 
-	@Disabled // has to be launched manually to prevent the pipeline blocking
-	@Test
-	public void highVolumeTrackLocation() {
+
+	// has to be launched with mvn command such as : mvn test -DuserNumber=100000
+	// Careful with those on windows, please use : mvn test -`DuserNumber=100000
+	@Parameters("userNumber")
+	@Test()
+	public void highVolumeTrackLocation(String userNumber) {
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 		// Users should be incremented up to 100,000, and test finishes within 15
 		// minutes
-		InternalTestHelper.setInternalUserNumber(100000);
+		InternalTestHelper.setInternalUserNumber(Integer.parseInt(userNumber));
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
-		tourGuideService.tracker.stopTracking();//disable the tracker, no need it into this test
 
 		List<User> allUsers = new ArrayList<>(tourGuideService.getAllUsers());
 
@@ -64,23 +66,25 @@ public class TestPerformance {
 		allUsers.parallelStream().forEach(tourGuideService::trackUserLocation);
 
 		stopWatch.stop();
+		tourGuideService.tracker.stopTracking();
 
 		System.out.println("highVolumeTrackLocation: Time Elapsed: "
 				+ TimeUnit.MILLISECONDS.toMillis(stopWatch.getTime()) + " milliseconds." + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
 		assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	}
 
-	@Disabled // // has to be launched manually to prevent the pipeline blocking
-	@Test
-	public void highVolumeGetRewards() {
+	// has to be launched with mvn command such as : mvn test -DuserNumber=100000
+	// Careful with those on windows, please use : mvn test -`DuserNumber=100000
+	@Parameters("userNumber")
+	@Test()
+	public void highVolumeGetRewards(String userNumber) {
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 
 		// Users should be incremented up to 100,000, and test finishes within 20
 		// minutes
-		InternalTestHelper.setInternalUserNumber(100000);
+		InternalTestHelper.setInternalUserNumber(Integer.parseInt(userNumber));
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
-		tourGuideService.tracker.stopTracking();//disable the tracker, no need it into this test
 
 		Attraction attraction = gpsUtil.getAttractions().get(0);
 		List<User> allUsers = new CopyOnWriteArrayList<>(tourGuideService.getAllUsers());
@@ -92,6 +96,7 @@ public class TestPerformance {
 		allUsers.parallelStream().forEach(rewardsService::calculateRewards);
 
 		stopWatch.stop();
+		tourGuideService.tracker.stopTracking();
 
 		for (User user : allUsers) {
 			assertTrue(user.getUserRewards().size() > 0);

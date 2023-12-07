@@ -44,7 +44,7 @@ public class RewardsService {
 		userLocations.forEach((visitedLocation) -> {
 			attractions.stream()
 					.filter(a -> (nearAttraction(visitedLocation, a)) && user.getUserRewards().stream().noneMatch(r -> r.attraction.attractionName.equals(a.attractionName)))
-					.toList().forEach(a -> user.addUserReward(new UserReward(visitedLocation, a, rewardCentralServiceAsync.getAttractionRewardPointsAsync(a.attractionId,user.getUserId()).join())));
+					.forEach(a -> user.addUserReward(new UserReward(visitedLocation, a, rewardCentralServiceAsync.getAttractionRewardPointsAsync(a.attractionId,user.getUserId()).join())));
 		});
 	}
 
