@@ -8,7 +8,7 @@ import com.openclassrooms.tourguide.user.UserReward;
 import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Test;
 import rewardCentral.RewardCentral;
 
 import java.util.Date;
@@ -18,7 +18,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TestRewardsService {
+public class TestRewardsServiceTest {
 
 	@Test
 	public void userGetRewards() {

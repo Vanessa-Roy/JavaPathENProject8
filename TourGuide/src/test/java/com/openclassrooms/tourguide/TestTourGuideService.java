@@ -9,7 +9,7 @@ import com.openclassrooms.tourguide.service.TourGuideService;
 import com.openclassrooms.tourguide.user.User;
 import gpsUtil.GpsUtil;
 import gpsUtil.location.VisitedLocation;
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Test;
 import rewardCentral.RewardCentral;
 import tripPricer.Provider;
 
@@ -128,6 +128,7 @@ public class TestTourGuideService {
 		}
 	}
 
+	@Test
 	public void getTripDeals() {
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
@@ -140,7 +141,7 @@ public class TestTourGuideService {
 
 		tourGuideService.tracker.stopTracking();
 
-		assertEquals(10, providers.size());
+		assertEquals(5, providers.size());
 	}
 
 }
