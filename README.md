@@ -9,6 +9,6 @@ The TestPerformance class can be launched with these several methods :
 # mvn test -Dtest=TestPerformance.java -DcustomVariable.userNumber=1000 -> launch only the performance tests with a manually defined userNumber; here userNumber=1000
 # mvn test -Dtest=TestPerformance.java -Dspring.profiles.active=performance -> launch only the performance tests with application-performance.properties either userNumber=100000
 
-!! --> Careful with those on windows, please use the backtick symbol` ` like in this example : mvn test -`Dtest=TestPerformance.java ;  <-- !!
+!! --> Careful with those on windows, please use the backtick symbol like in this example : mvn test -`Dtest=TestPerformance.java ;  <-- !!
 
 Authors @Vanessa-Roy
