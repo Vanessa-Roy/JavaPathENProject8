@@ -8,8 +8,9 @@ import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
 import org.apache.commons.lang3.time.StopWatch;
-import org.testng.annotations.Parameters;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
 import rewardCentral.RewardCentral;
 
 import java.util.ArrayList;
@@ -20,6 +21,10 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+// has to be launched with mvn command such as : mvn test -Dtest=TestPerformance.java -Dspring.profiles.active=performance
+// or -Dtest=TestPerformance.java -DcustomVariable.userNumber=1000 (the number of user you need, here 1000)
+// Careful with those on windows, please use the backtick "`" like this mvn test `-Dtest=TestPerformance.java `-Dspring.profiles.active=performance
+@SpringBootTest
 public class TestPerformance {
 
 	/*
@@ -45,17 +50,20 @@ public class TestPerformance {
 	 * TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	 */
 
+	@Value("${customVariable.userNumber}")
+	private int userNumber;
 
-	// has to be launched with mvn command such as : mvn test -DuserNumber=100000
-	// Careful with those on windows, please use : mvn test -`DuserNumber=100000
-	@Parameters("userNumber")
-	@Test()
-	public void highVolumeTrackLocation(String userNumber) {
+	// has to be launched with mvn command such as : mvn test -Dtest=TestPerformance.java -Dspring.profiles.active=performance
+// or -Dtest=TestPerformance.java -DcustomVariable.userNumber=1000 (the number of user you need, here 1000)
+// Careful with those on windows, please use the backtick "`" like this mvn test `-Dtest=TestPerformance.java `-Dspring.profiles.active=performance
+	@Test
+	public void highVolumeTrackLocation() {
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 		// Users should be incremented up to 100,000, and test finishes within 15
 		// minutes
-		InternalTestHelper.setInternalUserNumber(Integer.parseInt(userNumber));
+		System.out.println("highVolumeTrackLocation userNumber: " + userNumber);
+		InternalTestHelper.setInternalUserNumber(userNumber);
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
 
 		List<User> allUsers = new ArrayList<>(tourGuideService.getAllUsers());
@@ -73,17 +81,18 @@ public class TestPerformance {
 		assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	}
 
-	// has to be launched with mvn command such as : mvn test -DuserNumber=100000
-	// Careful with those on windows, please use : mvn test -`DuserNumber=100000
-	@Parameters("userNumber")
-	@Test()
-	public void highVolumeGetRewards(String userNumber) {
+	// has to be launched with mvn command such as : mvn test -Dtest=TestPerformance.java -Dspring.profiles.active=performance
+	// or -Dtest=TestPerformance.java -DcustomVariable.userNumber=1000 (the number of user you need, here 1000)
+	// Careful with those on windows, please use the backtick "`" like this mvn test `-Dtest=TestPerformance.java `-Dspring.profiles.active=performance
+	@Test
+	public void highVolumeGetRewards() {
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 
 		// Users should be incremented up to 100,000, and test finishes within 20
 		// minutes
-		InternalTestHelper.setInternalUserNumber(Integer.parseInt(userNumber));
+		System.out.println("highVolumeGetRewards userNumber: " + userNumber);
+		InternalTestHelper.setInternalUserNumber(userNumber);
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
 
 		Attraction attraction = gpsUtil.getAttractions().get(0);

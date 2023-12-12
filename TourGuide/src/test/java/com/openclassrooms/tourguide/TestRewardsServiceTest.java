@@ -8,7 +8,7 @@ import com.openclassrooms.tourguide.user.UserReward;
 import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 import rewardCentral.RewardCentral;
 
 import java.util.Date;

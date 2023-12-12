@@ -9,7 +9,7 @@ import com.openclassrooms.tourguide.service.TourGuideService;
 import com.openclassrooms.tourguide.user.User;
 import gpsUtil.GpsUtil;
 import gpsUtil.location.VisitedLocation;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 import rewardCentral.RewardCentral;
 import tripPricer.Provider;
 
